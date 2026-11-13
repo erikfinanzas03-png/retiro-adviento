@@ -96,8 +96,8 @@ dt{color:var(--faint)} dd{margin:0;overflow-wrap:anywhere}
       <strong>Proceso en la mesa</strong>
       <ol class="steps">
         <li><b>Escanea el QR</b> del pase (en su celular o captura). La llegada queda marcada sola y la fila se pinta de verde en la hoja.</li>
-        <li><b>Revisa las alertas</b>: alergias y medicamentos (avisa a cocina y botiquín), menores sin autorización firmada.</li>
-        <li><b>Cobra la cuota</b> y marca “Cuota pagada”. Si es menor, recibe la autorización y márcala.</li>
+        <li><b>Revisa las alertas</b>: alergias, alimentación y medicamentos (avisa a cocina y botiquín).</li>
+        <li><b>Cobra la cuota de $50</b> y marca “Cuota pagada”.</li>
         <li><b>Entrega el gafete</b> con el nombre y folio.</li>
         <li><b>¿No tiene registro?</b> Que escanee el cartel QR de la entrada, se registre en su celular y vuelva con su pase.</li>
       </ol>
@@ -130,14 +130,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwPYkFSUfvgDamveHkXlasg
     let list = []; try { list = JSON.parse(localStorage.getItem("adv26_demo") || "[]"); } catch(_){}
     let state = {}; try { state = JSON.parse(localStorage.getItem("adv26_demo_checkin") || "{}"); } catch(_){}
     const save = () => { try { localStorage.setItem("adv26_demo_checkin", JSON.stringify(state)); } catch(_){} };
-    const per = x => Object.assign({folio:x.folio, nombre:x.nombre, edad:x.edad, menor:x.edad<18, estatus:x.estatus, alergias:"No", restricciones:"No", medicamentos:"No", responsable:"(práctica)", parentesco:"", telResponsable:"", imagen:"Sí", origen:"Pre-registro en línea"}, state[x.folio] || {asistio:false, cuota:false, autorizacion:false, hora:""});
+    const per = x => Object.assign({folio:x.folio, nombre:x.nombre, edad:x.edad, menor:x.edad<18, estatus:x.estatus, alergias:"No", restricciones:"No", medicamentos:"No", responsable:"(práctica)", parentesco:"", telResponsable:"", imagen:"Sí", origen:"Pre-registro en línea"}, state[x.folio] || {asistio:false, cuota:false, hora:""});
     if (b.action === "resumen") return {ok:true, confirmados:list.length, llegaron:Object.values(state).filter(s=>s.asistio).length};
     if (b.action === "buscar"){ const q = b.q.toLowerCase(); return {ok:true, resultados:list.filter(x => (x.nombre+x.folio+x.telefono).toLowerCase().includes(q)).map(per)}; }
     let folio = b.folio, tok = null;
     if (b.codigo){ const p = b.codigo.split("|"); if (p.length !== 3 || p[0] !== "ADV26") return {ok:false, error:"Este QR no es un pase del retiro."}; folio = p[1]; tok = p[2]; }
     const x = list.find(r => r.folio === folio); if (!x) return {ok:false, error:"No encontramos el folio " + folio + "."};
     if (tok !== null && x.token !== tok) return {ok:false, error:"El código del QR no coincide con el folio. Verifica identidad."};
-    state[folio] = state[folio] || {asistio:false, cuota:false, autorizacion:false, hora:""};
+    state[folio] = state[folio] || {asistio:false, cuota:false, hora:""};
     if (b.action === "llegada"){ const ya = state[folio].asistio; if (!ya){ state[folio].asistio = true; state[folio].hora = new Date().toTimeString().slice(0,5); } save(); return {ok:true, yaHabia:ya, persona:per(x)}; }
     if (b.action === "marcar"){ state[folio][b.campo] = b.valor; save(); return {ok:true, persona:per(x)}; }
     return {ok:false, error:"Acción no válida."};
@@ -174,7 +174,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwPYkFSUfvgDamveHkXlasg
     r.append(el("div", "sub", `${p.folio} · ${p.edad} años · ${p.estatus}` + (p.hora ? ` · llegó ${p.hora}` : "")));
     const tags = el("div", "tags");
     if (wait) tags.append(el("span", "tag red", "Lista de espera: confirma con coordinación"));
-    if (p.menor && !p.autorizacion) tags.append(el("span", "tag red", "Menor: falta autorización firmada"));
     if (p.alergias && p.alergias !== "No") tags.append(el("span", "tag alert", "Alergia: " + p.alergias));
     if (p.restricciones && !["No","Ninguna"].includes(p.restricciones)) tags.append(el("span", "tag alert", "Alimentación: " + p.restricciones));
     if (p.medicamentos && p.medicamentos !== "No") tags.append(el("span", "tag alert", "Medicamento: " + p.medicamentos + (p.medFrecuencia ? " · " + p.medFrecuencia : "")));
@@ -190,7 +189,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwPYkFSUfvgDamveHkXlasg
       l.append(s, i); return l;
     };
     tg.append(mk("asistio", "Llegó", p.asistio), mk("cuota", "Cuota pagada", p.cuota));
-    if (p.menor) tg.append(mk("autorizacion", "Autorización firmada entregada", p.autorizacion));
     r.append(tg);
     box.append(r);
     box.scrollIntoView({behavior:"smooth", block:"start"});
