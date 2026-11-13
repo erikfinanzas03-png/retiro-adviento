@@ -177,7 +177,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwPYkFSUfvgDamveHkXlasg
     if (p.menor && !p.autorizacion) tags.append(el("span", "tag red", "Menor: falta autorización firmada"));
     if (p.alergias && p.alergias !== "No") tags.append(el("span", "tag alert", "Alergia: " + p.alergias));
     if (p.restricciones && !["No","Ninguna"].includes(p.restricciones)) tags.append(el("span", "tag alert", "Alimentación: " + p.restricciones));
-    if (p.medicamentos && p.medicamentos !== "No") tags.append(el("span", "tag alert", "Medicamento: " + p.medicamentos + (p.medUltimaToma ? " · última toma: " + p.medUltimaToma : "") + (p.medFrecuencia ? " · " + p.medFrecuencia : "")));
+    if (p.medicamentos && p.medicamentos !== "No") tags.append(el("span", "tag alert", "Medicamento: " + p.medicamentos + (p.medFrecuencia ? " · " + p.medFrecuencia : "")));
     if (p.cuota) tags.append(el("span", "tag green", "Cuota pagada"));
     if (/sitio/i.test(p.origen || "")) tags.append(el("span", "tag", "Registro en sitio"));
     if (tags.childElementCount) r.append(tags);

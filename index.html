@@ -541,15 +541,11 @@ details p{color:var(--muted);margin-top:10px;font-size:.95rem}
               <div class="reveal" id="medMore" hidden>
                 <div class="field"><label for="medTxt">¿Cuál medicamento o condición?</label>
                   <input id="medTxt" type="text" maxlength="160" placeholder="Nombre del medicamento o condición"></div>
-                <div class="row">
-                  <div class="field"><label for="medUltima">¿A qué hora lo tomaste por última vez?</label>
-                    <input id="medUltima" type="text" maxlength="60" placeholder="Día y hora"></div>
-                  <div class="field"><label for="medFrecuencia">¿Cada cuánto debes tomarlo?</label>
-                    <input id="medFrecuencia" type="text" maxlength="60" placeholder="Cada cuántas horas"></div>
-                </div>
+                <div class="field"><label for="medFrecuencia">¿Cada cuánto debes tomarlo?</label>
+                  <input id="medFrecuencia" type="text" maxlength="60" placeholder="Cada cuántas horas"></div>
                 <span class="hint">El equipo de botiquín lo guardará y te recordará tomarlo a tu hora.</span>
               </div>
-              <span class="err">Indica cuál medicamento, la última vez que lo tomaste y cada cuánto lo tomas.</span>
+              <span class="err">Indica cuál medicamento y cada cuánto lo tomas.</span>
             </div>
           </fieldset>
 
@@ -880,7 +876,7 @@ const CONFIG = {
       chk("compromisoPapas", !$("#compromisoPapas").checked);
       const al = radio("alergiasSN"); chk("alergias", !al || (al === "Sí" && val("alergiasTxt").length < 3));
       const rs = radio("restriccionesSN"); chk("restricciones", !rs || (rs === "Sí" && val("restTxt").length < 3));
-      const md = radio("medicamentosSN"); chk("medicamentos", !md || (md === "Sí" && (val("medTxt").length < 3 || val("medUltima").length < 2 || val("medFrecuencia").length < 2)));
+      const md = radio("medicamentosSN"); chk("medicamentos", !md || (md === "Sí" && (val("medTxt").length < 2 || val("medFrecuencia").length < 1)));
     }
     if (s === 3){
       chk("privacidad", !$("#privacidad").checked);
@@ -917,6 +913,13 @@ const CONFIG = {
     if (minor && $("#parentesco").selectedOptions[0]?.disabled) $("#parentesco").value = "";
   }
 
+  // Frecuencia del medicamento: "8" → "Cada 8 horas", "8 horas" → "Cada 8 horas"
+  function frecuencia(t){
+    t = t.trim();
+    if (/^\d+([.,]\d+)?$/.test(t)) return `Cada ${t} horas`;
+    return /^cada\b/i.test(t) ? t.charAt(0).toUpperCase() + t.slice(1) : `Cada ${t}`;
+  }
+
   function payload(){
     const al = radio("alergiasSN"), rs = radio("restriccionesSN"), md = radio("medicamentosSN");
     return {
@@ -931,8 +934,7 @@ const CONFIG = {
       alergias: al === "Sí" ? val("alergiasTxt") : "No",
       restricciones: rs === "Sí" ? val("restTxt") : "No",
       medicamentos: md === "Sí" ? val("medTxt") : "No",
-      medUltimaToma: md === "Sí" ? val("medUltima") : "",
-      medFrecuencia: md === "Sí" ? val("medFrecuencia") : "",
+      medFrecuencia: md === "Sí" ? frecuencia(val("medFrecuencia")) : "",
       privacidad: $("#privacidad").checked,
       website: val("website"),
       sitio: SITE_KEY
@@ -943,7 +945,7 @@ const CONFIG = {
     const p = payload(), dl = $("#summary"); dl.innerHTML = "";
     [["Nombre", p.nombre], ["Edad", p.edad + " años"], ["Celular", fmtTel(p.telefono)],
      [needsParents() ? "Papá/mamá/tutor" : "Contacto de emergencia", `${p.responsable} (${p.parentesco}) · ${fmtTel(p.telResponsable)}`],
-     ["Alergias", p.alergias], ["Restricción alimenticia", p.restricciones], ["Medicamentos", p.medicamentos === "No" ? "No" : `${p.medicamentos} · última toma: ${p.medUltimaToma} · cada ${p.medFrecuencia.replace(/^cada\s+/i, "")}`]]
+     ["Alergias", p.alergias], ["Restricción alimenticia", p.restricciones], ["Medicamentos", p.medicamentos === "No" ? "No" : `${p.medicamentos} · ${p.medFrecuencia.charAt(0).toLowerCase() + p.medFrecuencia.slice(1)}`]]
       .forEach(([k, v]) => { const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd"); dd.textContent = v; dl.append(dt, dd); });
   }
 
