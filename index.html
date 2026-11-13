@@ -529,7 +529,7 @@ details p{color:var(--muted);margin-top:10px;font-size:.95rem}
                 <label class="chip"><input type="radio" name="restriccionesSN" value="No"><span>No</span></label>
                 <label class="chip"><input type="radio" name="restriccionesSN" value="Sí"><span>Sí</span></label>
               </div>
-              <div class="reveal" id="restMore" hidden><input id="restTxt" type="text" maxlength="120" aria-label="Especifica tu restricción alimenticia" placeholder="Especifica cuál. Ej. vegetariana, sin gluten, sin lactosa"></div>
+              <div class="reveal" id="restMore" hidden><input id="restTxt" type="text" maxlength="120" aria-label="Especifica tu restricción alimenticia" placeholder="Especifica cuál"></div>
               <span class="err">Indica si tienes alguna restricción y, si es así, cuál.</span>
             </div>
             <div class="group" data-f="medicamentos">
@@ -539,10 +539,17 @@ details p{color:var(--muted);margin-top:10px;font-size:.95rem}
                 <label class="chip"><input type="radio" name="medicamentosSN" value="Sí"><span>Sí</span></label>
               </div>
               <div class="reveal" id="medMore" hidden>
-                <input id="medTxt" type="text" maxlength="160" aria-label="Medicamento u horario" placeholder="Cuál y a qué hora lo tomas">
+                <div class="field"><label for="medTxt">¿Cuál medicamento o condición?</label>
+                  <input id="medTxt" type="text" maxlength="160" placeholder="Nombre del medicamento o condición"></div>
+                <div class="row">
+                  <div class="field"><label for="medUltima">¿A qué hora lo tomaste por última vez?</label>
+                    <input id="medUltima" type="text" maxlength="60" placeholder="Día y hora"></div>
+                  <div class="field"><label for="medFrecuencia">¿Cada cuánto debes tomarlo?</label>
+                    <input id="medFrecuencia" type="text" maxlength="60" placeholder="Cada cuántas horas"></div>
+                </div>
                 <span class="hint">El equipo de botiquín lo guardará y te recordará tomarlo a tu hora.</span>
               </div>
-              <span class="err">Indica si tomas medicamento y, si es así, cuál.</span>
+              <span class="err">Indica cuál medicamento, la última vez que lo tomaste y cada cuánto lo tomas.</span>
             </div>
           </fieldset>
 
@@ -873,7 +880,7 @@ const CONFIG = {
       chk("compromisoPapas", !$("#compromisoPapas").checked);
       const al = radio("alergiasSN"); chk("alergias", !al || (al === "Sí" && val("alergiasTxt").length < 3));
       const rs = radio("restriccionesSN"); chk("restricciones", !rs || (rs === "Sí" && val("restTxt").length < 3));
-      const md = radio("medicamentosSN"); chk("medicamentos", !md || (md === "Sí" && val("medTxt").length < 3));
+      const md = radio("medicamentosSN"); chk("medicamentos", !md || (md === "Sí" && (val("medTxt").length < 3 || val("medUltima").length < 2 || val("medFrecuencia").length < 2)));
     }
     if (s === 3){
       chk("privacidad", !$("#privacidad").checked);
@@ -924,6 +931,8 @@ const CONFIG = {
       alergias: al === "Sí" ? val("alergiasTxt") : "No",
       restricciones: rs === "Sí" ? val("restTxt") : "No",
       medicamentos: md === "Sí" ? val("medTxt") : "No",
+      medUltimaToma: md === "Sí" ? val("medUltima") : "",
+      medFrecuencia: md === "Sí" ? val("medFrecuencia") : "",
       privacidad: $("#privacidad").checked,
       website: val("website"),
       sitio: SITE_KEY
@@ -934,7 +943,7 @@ const CONFIG = {
     const p = payload(), dl = $("#summary"); dl.innerHTML = "";
     [["Nombre", p.nombre], ["Edad", p.edad + " años"], ["Celular", fmtTel(p.telefono)],
      [needsParents() ? "Papá/mamá/tutor" : "Contacto de emergencia", `${p.responsable} (${p.parentesco}) · ${fmtTel(p.telResponsable)}`],
-     ["Alergias", p.alergias], ["Restricción alimenticia", p.restricciones], ["Medicamentos", p.medicamentos]]
+     ["Alergias", p.alergias], ["Restricción alimenticia", p.restricciones], ["Medicamentos", p.medicamentos === "No" ? "No" : `${p.medicamentos} · última toma: ${p.medUltimaToma} · cada ${p.medFrecuencia.replace(/^cada\s+/i, "")}`]]
       .forEach(([k, v]) => { const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd"); dd.textContent = v; dl.append(dt, dd); });
   }
 
